@@ -1,0 +1,26 @@
+{
+  "presets": [
+    "@babel/preset-env"
+  ],
+  "env": {
+    "debug": {
+      "sourceMaps": "inline",
+      "retainLines": true
+    }
+  },
+  "plugins": [
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "absoluteRuntime": false,
+        "corejs": false,
+        "helpers": true,
+        "regenerator": true,
+        "useESModules": false,
+        "version": "7.0.0"
+      }
+    ]
+  ]
+}
+
+
