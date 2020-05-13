@@ -19,6 +19,7 @@ export default class Desk extends EventEmitter {
     return {
       up: Buffer.from('4700', 'hex'),
       down: Buffer.from('4600', 'hex'),
+      stop: Buffer.from('FF00', 'hex'),
     }
   }
 
@@ -140,6 +141,10 @@ export default class Desk extends EventEmitter {
       return
     }
 
+    if (Math.abs(this.position - targetPosition) <= 1) {
+      return
+    }
+
     this.movingPromise = this.performMoveTo(targetPosition)
     await this.movingPromise
   }
@@ -148,7 +153,7 @@ export default class Desk extends EventEmitter {
     this.isMoving = true
 
     const isMovingUp = targetPosition > this.position
-    const stopThreshold = 1.2
+    const stopThreshold = 1
     
     try {
       while (
@@ -158,8 +163,12 @@ export default class Desk extends EventEmitter {
       ) {
         await this.ensureConnection()
         await this.controlChar.writeAsync(isMovingUp ? Desk.control().up : Desk.control().down, false)
+        
+        await new Promise(resolve => setTimeout(resolve, 50))
         await this.readPosition()
       }
+
+      await this.controlChar.writeAsync(Desk.control().stop, false)
       this.isMoving = false
 
     } catch (err) {
