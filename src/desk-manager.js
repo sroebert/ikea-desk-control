@@ -85,7 +85,12 @@ export default class DeskManager {
   // ===
 
   async scan() {
+    if (this.desk) {
+      return
+    }
+
     try {
+      console.log('start scanning')
       await noble.startScanningAsync()
     } catch (err) {
       console.log(`Failed to start scanning: ${err}`)
@@ -104,22 +109,40 @@ export default class DeskManager {
   /**
    * @param {noble.Peripheral} peripheral 
    */
+  isDeskPeripheral(peripheral) {
+    if (peripheral.address == this.config.deskAddress) {
+      return true
+    }
+
+    if (!peripheral.advertisement || !peripheral.advertisement.serviceUuids) {
+      return false
+    }
+
+    return peripheral.advertisement.serviceUuids.includes(Desk.services().control.id)
+  }
+
+  /**
+   * @param {noble.Peripheral} peripheral 
+   */
   async processPeripheral(peripheral) {
-    if (this.desk || peripheral.address != this.config.deskAddress) {
+    if (this.desk || !this.isDeskPeripheral(peripheral)) {
       return
     }
 
-    try {
-      await noble.stopScanningAsync()
-    } catch (err) {
-      // We don't really care
-    }
-
+    console.log('Connecting...')
     this.desk = new Desk(
       peripheral,
       this.config.deskPositionOffset,
       this.config.deskPositionMax
     )
+
+    try {
+      console.log('stop scanning')
+      await noble.stopScanningAsync()
+    } catch (err) {
+      // We don't really care
+    }
+
     this.didUpdateDevice()
   }
 

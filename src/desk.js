@@ -2,6 +2,26 @@ import EventEmitter from 'events'
 import schedule from 'node-schedule'
 
 export default class Desk extends EventEmitter {
+  static services() {
+    return {
+      position: {
+        id: '99fa0020338a10248a49009c0215f78a',
+        characteristicId: '99fa0021338a10248a49009c0215f78a',
+      },
+      control: {
+        id: '99fa0001338a10248a49009c0215f78a',
+        characteristicId: '99fa0002338a10248a49009c0215f78a',
+      },
+    }
+  }
+
+  static control() {
+    return {
+      up: Buffer.from('4700', 'hex'),
+      down: Buffer.from('4600', 'hex'),
+    }
+  }
+
   /**
    * 
    * @param {import('@abandonware/noble').Peripheral} peripheral
@@ -15,23 +35,6 @@ export default class Desk extends EventEmitter {
     this.position = positionOffset
     this.positionMax = positionMax
     this.shouldDisconnect = false
-
-    this.services = {
-      position: {
-        id: '99fa0020338a10248a49009c0215f78a',
-        characteristicId: '99fa0021338a10248a49009c0215f78a',
-      },
-      control: {
-        id: '99fa0001338a10248a49009c0215f78a',
-        characteristicId: '99fa0002338a10248a49009c0215f78a',
-      },
-    }
-
-    this.control = {
-      up: Buffer.from('4700', 'hex'),
-      down: Buffer.from('4600', 'hex'),
-      stop: Buffer.from('FF00', 'hex'),
-    }
 
     this.isConnected = false
     this.peripheral.on('connect', () => {
@@ -81,14 +84,14 @@ export default class Desk extends EventEmitter {
     await this.peripheral.connectAsync()
 
     const { characteristics } = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync([
-      this.services.position.id,
-      this.services.control.id,
+      Desk.services().position.id,
+      Desk.services().control.id,
     ], [
-      this.services.position.characteristicId,
-      this.services.control.characteristicId,
+      Desk.services().position.characteristicId,
+      Desk.services().control.characteristicId,
     ])
     
-    const positionChar = characteristics.find(char => char.uuid == this.services.position.characteristicId)
+    const positionChar = characteristics.find(char => char.uuid == Desk.services().position.characteristicId)
     if (!positionChar) {
       throw 'Missing position service'
     }
@@ -101,7 +104,7 @@ export default class Desk extends EventEmitter {
     })
     await positionChar.notifyAsync(true)
 
-    const controlChar = characteristics.find(char => char.uuid == this.services.control.characteristicId)
+    const controlChar = characteristics.find(char => char.uuid == Desk.services().control.characteristicId)
     if (!controlChar) {
       throw 'Missing control service'
     }
@@ -142,7 +145,7 @@ export default class Desk extends EventEmitter {
       (!isMovingUp && this.position - stopThreshold > targetPosition))
     ) {
       await this.ensureConnection()
-      await this.controlChar.writeAsync(isMovingUp ? this.control.up : this.control.down, false)
+      await this.controlChar.writeAsync(isMovingUp ? Desk.control().up : Desk.control().down, false)
       await this.readPosition()
     }
   }
