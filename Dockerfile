@@ -6,6 +6,13 @@ FROM ${BASE_IMAGE_PREFIX}node:12.10
 ARG ARCH
 COPY qemu-${ARCH}-static /usr/bin
 
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+  bluetooth \
+  bluez \
+  libbluetooth-dev \
+  libudev-dev
+
 # Setup App
 WORKDIR /usr/src/app
 COPY package*.json ./
