@@ -35,6 +35,7 @@ export default class Desk extends EventEmitter {
     this.position = positionOffset
     this.positionMax = positionMax
     this.shouldDisconnect = false
+    this.isMoving = false
 
     this.isConnected = false
     this.peripheral.on('connect', () => {
@@ -133,20 +134,44 @@ export default class Desk extends EventEmitter {
    * @param {Int} position 
    */
   async moveTo(targetPosition) {
+    await this.stopMoving()
+
     if (targetPosition < this.positionOffset || targetPosition > this.positionOffset + this.positionMax) {
       return
     }
 
+    this.movingPromise = this.performMoveTo(targetPosition)
+    await this.movingPromise
+  }
+
+  async performMoveTo(targetPosition) {
+    this.isMoving = true
+
     const isMovingUp = targetPosition > this.position
     const stopThreshold = 1.2
     
-    while (
-      ((isMovingUp && this.position + stopThreshold < targetPosition) ||
-      (!isMovingUp && this.position - stopThreshold > targetPosition))
-    ) {
-      await this.ensureConnection()
-      await this.controlChar.writeAsync(isMovingUp ? Desk.control().up : Desk.control().down, false)
-      await this.readPosition()
+    try {
+      while (
+        this.isMoving &&
+        ((isMovingUp && this.position + stopThreshold < targetPosition) ||
+        (!isMovingUp && this.position - stopThreshold > targetPosition))
+      ) {
+        await this.ensureConnection()
+        await this.controlChar.writeAsync(isMovingUp ? Desk.control().up : Desk.control().down, false)
+        await this.readPosition()
+      }
+      this.isMoving = false
+
+    } catch (err) {
+      this.isMoving = false
+      throw err
+    }
+  }
+
+  async stopMoving() {
+    this.isMoving = false
+    if (this.movingPromise) {
+      await this.movingPromise
     }
   }
 }

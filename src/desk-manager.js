@@ -198,12 +198,12 @@ export default class DeskManager {
       return
     }
 
-    try {
-      const object = JSON.parse(command)
-      const position = object.position
-      this.desk.moveTo(position)
-    } catch (err) {
-      // Don't do anything
+    const numberCommand = Number(command)
+
+    if (command === 'STOP') {
+      this.desk.stopMoving()
+    } else if (Number.isFinite(numberCommand)) {
+      this.desk.moveTo(numberCommand)
     }
   }
 }
