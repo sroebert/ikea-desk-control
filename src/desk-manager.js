@@ -206,6 +206,9 @@ export default class DeskManager {
       this.desk.moveTo(this.config.deskPositionOffset + this.config.deskPositionMax)
     } else if (command === 'CLOSE') {
       this.desk.moveTo(this.config.deskPositionOffset)
+    } else if (command === 'ANNOUNCE') {
+      this.publishConnectionState()
+      this.publishPosition()
     } else if (Number.isFinite(numberCommand)) {
       this.desk.moveTo(numberCommand)
     }
