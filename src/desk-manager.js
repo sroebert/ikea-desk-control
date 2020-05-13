@@ -202,6 +202,10 @@ export default class DeskManager {
 
     if (command === 'STOP') {
       this.desk.stopMoving()
+    } else if (command === 'OPEN') {
+      this.desk.moveTo(this.config.deskPositionOffset + this.config.deskPositionMax)
+    } else if (command === 'CLOSE') {
+      this.desk.moveTo(this.config.deskPositionOffset)
     } else if (Number.isFinite(numberCommand)) {
       this.desk.moveTo(numberCommand)
     }
