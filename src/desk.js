@@ -12,6 +12,10 @@ export default class Desk extends EventEmitter {
         id: '99fa0001338a10248a49009c0215f78a',
         characteristicId: '99fa0002338a10248a49009c0215f78a',
       },
+      test: {
+        id: '99fa0010338a10248a49009c0215f78a',
+        characteristicId: '99fa0011338a10248a49009c0215f78a',
+      },
     }
   }
 
@@ -34,6 +38,7 @@ export default class Desk extends EventEmitter {
     this.peripheral = peripheral
     this.positionOffset = positionOffset
     this.position = positionOffset
+    this.speed = 0
     this.positionMax = positionMax
     this.shouldDisconnect = false
     this.isMoving = false
@@ -88,9 +93,11 @@ export default class Desk extends EventEmitter {
     const { characteristics } = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync([
       Desk.services().position.id,
       Desk.services().control.id,
+      Desk.services().test.id,
     ], [
       Desk.services().position.characteristicId,
       Desk.services().control.characteristicId,
+      Desk.services().test.characteristicId,
     ])
     
     const positionChar = characteristics.find(char => char.uuid == Desk.services().position.characteristicId)
@@ -111,6 +118,12 @@ export default class Desk extends EventEmitter {
       throw 'Missing control service'
     }
 
+    const testChar = characteristics.find(char => char.uuid == Desk.services().test.characteristicId)
+    testChar.on('data', async (data) => {
+      console.log(data)
+    })
+    await testChar.notifyAsync(true)
+
     this.positionChar = positionChar
     this.controlChar = controlChar
   }
@@ -121,6 +134,9 @@ export default class Desk extends EventEmitter {
     this.updatePosition(data)
   }
 
+  /**
+   * @param {Buffer} data 
+   */
   updatePosition(data) {
     const position = this.positionOffset + (data.readInt16LE() / 100)
     if (this.position == position) {
@@ -128,7 +144,8 @@ export default class Desk extends EventEmitter {
     }
 
     this.position = position
-    this.emit('position', this.position)
+    this.speed = data.readUInt16LE(2)
+    this.emit('position', this.position, this.speed)
   }
 
   /**
@@ -154,6 +171,10 @@ export default class Desk extends EventEmitter {
 
     const isMovingUp = targetPosition > this.position
     const stopThreshold = 1
+
+    let lastPosition = this.position
+    let lastSpeed = 0
+    let shouldStopCounter = 0
     
     try {
       while (
@@ -166,9 +187,23 @@ export default class Desk extends EventEmitter {
         
         await new Promise(resolve => setTimeout(resolve, 50))
         await this.readPosition()
+
+        if (lastPosition == this.position || (lastSpeed != 0 && this.speed == 0)) {
+          shouldStopCounter += 1
+        } else {
+          shouldStopCounter = 0
+        }
+
+        if (shouldStopCounter >= 5) {
+          break
+        }
+
+        lastPosition = this.position
+        lastSpeed = this.speed
       }
 
       await this.controlChar.writeAsync(Desk.control().stop, false)
+
       this.isMoving = false
 
     } catch (err) {

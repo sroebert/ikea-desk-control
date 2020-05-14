@@ -162,7 +162,8 @@ export default class DeskManager {
     }
 
     const status = {
-      position: this.desk.position
+      position: this.desk.position,
+      speed: this.desk.speed
     }
     this.mqtt.publish(`${this.topicPrefix}/status`,JSON.stringify(status), {
       qos: 0
