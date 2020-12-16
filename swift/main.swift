@@ -20,12 +20,7 @@ do {
 
 let task = Process()
 task.launchPath = "/bin/bash"
-task.environment = [
-    "PATH": "/usr/local/bin:/usr/bin:/bin",
-    "NVM_DIR": "$HOME/.nvm"
-]
-task.arguments = ["-c", "npm start"]
-
+task.arguments = ["-c", "source /Users/steven/.bash_profile; npm start"]
 
 let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
 sigintSrc.setEventHandler {
