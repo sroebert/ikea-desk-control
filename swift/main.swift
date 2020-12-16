@@ -21,7 +21,8 @@ do {
 let task = Process()
 task.launchPath = "/bin/bash"
 task.environment = [
-    "PATH": "/usr/local/bin:/usr/bin:/bin"
+    "PATH": "/usr/local/bin:/usr/bin:/bin",
+    "NVM_DIR": "$HOME/.nvm"
 ]
 task.arguments = ["-c", "npm start"]
 

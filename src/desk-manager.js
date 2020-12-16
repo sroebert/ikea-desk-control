@@ -15,13 +15,13 @@ import mqtt from 'mqtt'
  */
 
 export default class DeskManager {
-  
+
   // ===
   // Initialize
   // ===
 
   /**
-   * @param {DeskManagerConfig} config 
+   * @param {DeskManagerConfig} config
    */
   constructor(config) {
     this.config = config
@@ -107,7 +107,7 @@ export default class DeskManager {
   }
 
   /**
-   * @param {noble.Peripheral} peripheral 
+   * @param {noble.Peripheral} peripheral
    */
   isDeskPeripheral(peripheral) {
     if (peripheral.address == this.config.deskAddress) {
@@ -122,7 +122,7 @@ export default class DeskManager {
   }
 
   /**
-   * @param {noble.Peripheral} peripheral 
+   * @param {noble.Peripheral} peripheral
    */
   async processPeripheral(peripheral) {
     if (this.desk || !this.isDeskPeripheral(peripheral)) {
@@ -136,12 +136,8 @@ export default class DeskManager {
       this.config.deskPositionMax
     )
 
-    try {
-      console.log('stop scanning')
-      await noble.stopScanningAsync()
-    } catch (err) {
-      // We don't really care
-    }
+    console.log('stop scanning')
+    noble.stopScanningAsync()
 
     this.didUpdateDevice()
   }
