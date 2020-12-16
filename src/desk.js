@@ -163,6 +163,10 @@ export default class Desk extends EventEmitter {
     }
 
     this.movingPromise = this.performMoveTo(targetPosition)
+    this.movingPromise.finally(() => {
+      this.movingPromise = null
+    })
+    
     await this.movingPromise
   }
 

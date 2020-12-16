@@ -1,7 +1,7 @@
-Home Connect MQTT
+IKEA Desk Control
 -----------------
 
-Node.js project to connect the Home Connect API with an MQTT broker.
+Node.js project to connect to the IKEA Idasen desk with an MQTT broker.
 
 License
 -------
