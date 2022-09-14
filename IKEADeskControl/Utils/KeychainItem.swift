@@ -9,7 +9,7 @@ public enum KeychainItemClearMode {
     public static let atFirstStartup: Self = .atFirstStartup()
 }
 
-public enum KeychainItemAccessibility {
+public enum KeychainItemAccessibility: Sendable {
     case whenPasscodeIsSet
     case whenUnlocked
     case afterFirstUnlock
@@ -88,14 +88,14 @@ public struct KeychainItem<Value: Codable> {
     }
 }
 
-private struct KeychainItemManager {
+private struct KeychainItemManager: @unchecked Sendable {
 
     // MARK: - Public Vars
 
     static let service = "com.roebert.IKEADeskControl.KeychainItem"
 
-    var key: String
-    var accessibility: KeychainItemAccessibility
+    let key: String
+    let accessibility: KeychainItemAccessibility
 
     // MARK: - Private Vars
 
@@ -192,14 +192,14 @@ private struct KeychainItemManager {
         let query = createQuery()
         let result: OSStatus
         if SecItemCopyMatching(query, nil) == errSecSuccess {
-            if let data = data {
+            if let data {
                 result = SecItemUpdate(query, [
                     kSecValueData: data
                 ] as CFDictionary)
             } else {
                 result = SecItemDelete(query)
             }
-        } else if let data = data {
+        } else if let data {
             let addQuery = createQuery {
                 $0[kSecValueData] = data
             }

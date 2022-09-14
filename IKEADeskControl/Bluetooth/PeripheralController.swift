@@ -1,5 +1,5 @@
 import Foundation
-import CoreBluetooth
+@preconcurrency import CoreBluetooth
 
 actor PeripheralController {
     
@@ -22,10 +22,10 @@ actor PeripheralController {
     
     private var peripheral: CBPeripheral?
     
-    private var onState: ((CBManagerState) async -> Void)?
-    private var onDiscover: ((CBPeripheral) async -> Void)?
-    private var onDisconnect: (() async -> Void)?
-    private var onCharacteristicUpdate: ((CBCharacteristic) async -> Void)?
+    private var onState: (@Sendable (CBManagerState) async -> Void)?
+    private var onDiscover: (@Sendable (CBPeripheral) async -> Void)?
+    private var onDisconnect: (@Sendable () async -> Void)?
+    private var onCharacteristicUpdate: (@Sendable (CBCharacteristic) async -> Void)?
     
     private let manager: CBCentralManager
     private let delegate: Delegate
@@ -55,12 +55,14 @@ actor PeripheralController {
     }
     
     deinit {
-        if manager.isScanning {
-            manager.stopScan()
-        }
-        
-        if isConnected, let peripheral = peripheral {
-            manager.cancelPeripheralConnection(peripheral)
+        Task {
+            if manager.isScanning {
+                manager.stopScan()
+            }
+            
+            if await isConnected, let peripheral = await peripheral {
+                manager.cancelPeripheralConnection(peripheral)
+            }
         }
     }
     
@@ -193,19 +195,19 @@ actor PeripheralController {
     
     // MARK: - Register Events
     
-    func onState(_ onState: @escaping (CBManagerState) async -> Void) {
+    func onState(_ onState: @escaping @Sendable (CBManagerState) async -> Void) {
         self.onState = onState
     }
     
-    func onDiscover(_ onDiscover: @escaping (CBPeripheral) async -> Void) {
+    func onDiscover(_ onDiscover: @escaping @Sendable (CBPeripheral) async -> Void) {
         self.onDiscover = onDiscover
     }
     
-    func onDisconnect(_ onDisconnect: @escaping () async -> Void) {
+    func onDisconnect(_ onDisconnect: @escaping @Sendable () async -> Void) {
         self.onDisconnect = onDisconnect
     }
     
-    func onCharacteristicUpdate(_ onCharacteristicUpdate: @escaping (CBCharacteristic) async -> Void) {
+    func onCharacteristicUpdate(_ onCharacteristicUpdate: @escaping @Sendable (CBCharacteristic) async -> Void) {
         self.onCharacteristicUpdate = onCharacteristicUpdate
     }
     
@@ -248,7 +250,7 @@ actor PeripheralController {
     }
     
     private func onTaskResult(error: Error?) {
-        if let error = error {
+        if let error {
             failTask(with: error)
         } else {
             completeTask()
@@ -256,7 +258,7 @@ actor PeripheralController {
     }
     
     private func onCharacteristicUpdate(_ characteristic: CBCharacteristic, error: Error?) async {
-        if let error = error {
+        if let error {
             failTask(with: error)
         } else {
             if readCharacteristic == characteristic {
@@ -311,7 +313,7 @@ actor PeripheralController {
         // MARK: - Utils
         
         private func handleTaskResult(error: Error?) {
-            Task {
+            Task { [controller] in
                 await controller?.onTaskResult(error: error)
             }
         }
@@ -320,31 +322,31 @@ actor PeripheralController {
         
         func centralManagerDidUpdateState(_ central: CBCentralManager) {
             let state = central.state
-            Task {
+            Task { [controller] in
                 await controller?.onStateUpdate(state)
             }
         }
         
         func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-            Task {
+            Task { [controller] in
                 await controller?.onDiscover(peripheral)
             }
         }
         
         func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-            Task {
+            Task { [controller] in
                 await controller?.onConnect()
             }
         }
         
         func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-            Task {
+            Task { [controller] in
                 await controller?.onFailedToConnect(with: error)
             }
         }
         
         func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-            Task {
+            Task { [controller] in
                 await controller?.onDisconnect(with: error)
             }
         }
@@ -364,7 +366,7 @@ actor PeripheralController {
         }
         
         func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-            Task {
+            Task { [controller] in
                 await controller?.onCharacteristicUpdate(characteristic, error: error)
             }
         }

@@ -1,6 +1,7 @@
-import Foundation
+@preconcurrency import Foundation
 import Logging
-import CoreBluetooth
+@preconcurrency import CoreBluetooth
+import NIO
 
 actor DeskController {
     
@@ -32,10 +33,10 @@ actor DeskController {
     }
     
     private enum Command {
-        static var up = Data([0x47, 0x00])
-        static var down = Data([0x46, 0x00])
-        static var stop = Data([0xff, 0x00])
-        static var undefined = Data([0xFE, 0x00])
+        static let up = Data([0x47, 0x00])
+        static let down = Data([0x46, 0x00])
+        static let stop = Data([0xff, 0x00])
+        static let undefined = Data([0xFE, 0x00])
     }
     
     private struct Connection {
@@ -162,15 +163,15 @@ actor DeskController {
     
     // MARK: - Register Events
     
-    func onDeskState(_ onDeskState: @escaping (DeskState) async -> Void) {
+    func onDeskState(_ onDeskState: @escaping @Sendable (DeskState) async -> Void) {
         self.onDeskState = onDeskState
     }
     
-    func onConnected(_ onConnected: @escaping (DeskState) async -> Void) {
+    func onConnected(_ onConnected: @escaping @Sendable (DeskState) async -> Void) {
         self.onConnected = onConnected
     }
     
-    func onDisconnected(_ onDisconnected: @escaping () async -> Void) {
+    func onDisconnected(_ onDisconnected: @escaping @Sendable () async -> Void) {
         self.onDisconnected = onDisconnected
     }
     
@@ -182,7 +183,7 @@ actor DeskController {
         }
         
         do {
-            if let peripheral = peripheral {
+            if let peripheral {
                 try await connectAndDiscover(peripheral)
             } else {
                 try await controller.findPeripheral()

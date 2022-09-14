@@ -1,7 +1,7 @@
-import Foundation
+@preconcurrency import Foundation
 import SwiftUI
 import Logging
-import MQTTNIO
+@preconcurrency import MQTTNIO
 
 final class AppModel: ObservableObject {
     
@@ -36,7 +36,7 @@ final class AppModel: ObservableObject {
     private init() {
         Self.loggingBootstrap()
         
-        if let configuration = configuration {
+        if let configuration {
             activeTask = Task {
                 await setup(
                     peripheralId: configuration.peripheralId,

@@ -29,6 +29,7 @@ struct IKEADeskControlApp {
     }
 }
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     
     // MARK: - Private Vars

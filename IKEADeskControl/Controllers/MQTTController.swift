@@ -1,5 +1,5 @@
 import Foundation
-import MQTTNIO
+@preconcurrency import MQTTNIO
 import Logging
 
 actor MQTTController {
