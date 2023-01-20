@@ -1,4 +1,4 @@
-@preconcurrency import Foundation
+import Foundation
 import Logging
 @preconcurrency import CoreBluetooth
 import NIO

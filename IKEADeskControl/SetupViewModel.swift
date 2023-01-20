@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 
+@MainActor
 final class SetupViewModel: ObservableObject {
     
     // MARK: - Types

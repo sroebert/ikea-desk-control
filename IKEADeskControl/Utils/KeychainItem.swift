@@ -27,7 +27,7 @@ public enum KeychainItemAccessibility: Sendable {
 }
 
 @propertyWrapper
-public struct KeychainItem<Value: Codable> {
+public struct KeychainItem<Value: Codable & Sendable> {
 
     // MARK: - Private Vars
 
@@ -144,8 +144,8 @@ private struct KeychainItemManager: @unchecked Sendable {
         return nil
     }
 
-    func setAsync<Value: Codable>(_ value: Value?) {
-        queue.async {
+    func setAsync<Value: Codable & Sendable>(_ value: Value?) {
+        queue.async { [value] in
             set(value)
         }
     }

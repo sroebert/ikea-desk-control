@@ -1,9 +1,9 @@
-@preconcurrency import Foundation
+import Foundation
 import SwiftUI
 import Logging
-@preconcurrency import MQTTNIO
+import MQTTNIO
 
-final class AppModel: ObservableObject {
+final class AppModel: ObservableObject, @unchecked Sendable {
     
     // MARK: - Types
     

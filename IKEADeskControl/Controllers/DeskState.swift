@@ -1,4 +1,4 @@
-@preconcurrency import Foundation
+import Foundation
 
 struct DeskState: Equatable {
     var peripheralId: UUID

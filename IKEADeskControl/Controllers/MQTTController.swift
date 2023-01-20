@@ -1,5 +1,5 @@
 import Foundation
-@preconcurrency import MQTTNIO
+import MQTTNIO
 import Logging
 
 actor MQTTController {
@@ -152,7 +152,7 @@ actor MQTTController {
     
     // MARK: - Register Events
     
-    func onCommand(_ onCommand: @escaping (Command) async -> Void) {
+    func onCommand(_ onCommand: @escaping @Sendable (Command) async -> Void) {
         self.onCommand = onCommand
     }
     
